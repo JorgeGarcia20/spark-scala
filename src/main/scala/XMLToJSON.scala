@@ -18,8 +18,8 @@ object XMLToJSON {
       .config("spark.master", "local")
       .getOrCreate()
 
-    val xmlPath = "/home/jorge/IdeaProjects/sparkGettingStarted/src/data/nestedxml.xml"
-    val jsonsPath = "/home/jorge/IdeaProjects/sparkGettingStarted/src/data/jsons/"
+    val xmlPath = "src/data/nestedxml.xml"
+    val jsonsPath = "src/data/jsons/"
 
     val df = spark.read
       .option("rowTag", "items")
@@ -36,13 +36,15 @@ object XMLToJSON {
       .save(jsonsPath)
      */
 
-    val jsonString = Source.fromFile("/home/jorge/IdeaProjects/sparkGettingStarted/src/data/jsons/part-00000-541365c4-2b7c-49e5-abfc-c379f0913fdd-c000.json").mkString
-    val json = parse(jsonString)
+    // Validando que la estructura del JSON sea correcta
 
-    json match {
-      case JObject(fields) => println("JSON valido: " + pretty(json))
-      case _ => println("JSON invalido")
-    }
+    //val jsonString = Source.fromFile("/home/jorge/IdeaProjects/sparkGettingStarted/src/data/jsons/part-00000-541365c4-2b7c-49e5-abfc-c379f0913fdd-c000.json").mkString
+    //val json = parse(jsonString)
+
+    //json match {
+      //case JObject(fields) => println("JSON valido: " + pretty(json))
+      //case _ => println("JSON invalido")
+    //}
 
     //println(jsonString)
 

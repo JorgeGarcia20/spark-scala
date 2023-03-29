@@ -11,7 +11,7 @@ object FlattenADataFrame {
       .config("spark.master", "local")
       .getOrCreate()
 
-    val xmlPath = "/home/jorge/IdeaProjects/sparkGettingStarted/src/data/nestedxml.xml"
+    val xmlPath = "src/data/nestedxml.xml"
 
     val df = spark.read
       .option("rootTag", "items")
@@ -54,6 +54,7 @@ object FlattenADataFrame {
 
     df6.show(false)
 
+    // Creando una vista temporal para poder hacer queries de SQL
     df6.createTempView("donuts")
 
     spark.sql(

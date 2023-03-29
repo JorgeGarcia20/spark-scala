@@ -13,8 +13,8 @@ object XMLtoJSON2 {
       .config("spark.master", "local")
       .getOrCreate()
 
-    val xmlPath = "/home/jorge/IdeaProjects/sparkGettingStarted/src/data/nestedxml.xml"
-    val jsonsPath = "/home/jorge/IdeaProjects/sparkGettingStarted/src/data/jsons/"
+    val xmlPath = "src/data/nestedxml.xml"
+    val jsonsPath = "src/data/jsons/"
     /*
         /*
         * <item id="0001" type="donut">
