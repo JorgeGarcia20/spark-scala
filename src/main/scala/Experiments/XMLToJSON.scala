@@ -1,11 +1,7 @@
+package Experiments
+
 import com.databricks.spark.xml._
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.functions._
-import org.json4s.jackson.JsonMethods.mapper
-
-import scala.io.Source
-import org.json4s._
-import org.json4s.jackson.JsonMethods._
 
 import scala.language.postfixOps
 

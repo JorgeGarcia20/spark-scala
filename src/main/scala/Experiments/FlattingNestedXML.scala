@@ -1,7 +1,9 @@
-import org.apache.spark.sql.{DataFrame, SparkSession}
+package Experiments
+
 import com.databricks.spark.xml._
 import org.apache.spark.sql.functions.{col, explode}
-import org.apache.spark.sql.types.{ArrayType, StructField, StructType}
+import org.apache.spark.sql.types.{ArrayType, StructType}
+import org.apache.spark.sql.{DataFrame, SparkSession}
 
 object FlattingNestedXML{
 
