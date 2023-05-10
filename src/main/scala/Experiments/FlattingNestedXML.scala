@@ -5,22 +5,28 @@ import org.apache.spark.sql.functions.{col, explode}
 import org.apache.spark.sql.types.{ArrayType, StructType}
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
-object FlattingNestedXML{
+object FlattingNestedXML extends App {
+  val spark = SparkSession
+    .builder()
+    .appName("FlattingADataFrame")
+    .config("spark.master", "local")
+    .getOrCreate()
 
   def expandNestedColumn(df_temp: DataFrame): DataFrame ={
     var df: DataFrame = df_temp
     var selectClauseList = List.empty[String]
 
     for (columnName <- df.schema.names) {
-      if (df.schema(columnName).dataType.isInstanceOf[ArrayType]){
-        df = df.withColumn(columnName, explode(df(columnName)).alias(columnName))
-        selectClauseList :+= columnName
-      }else if (df.schema(columnName).dataType.isInstanceOf[StructType]){
-        for (field <- df.schema(columnName).dataType.asInstanceOf[StructType].fields){
-          selectClauseList :+= columnName + "." + field.name
-        }
-      }else {
-        selectClauseList :+= columnName
+      df.schema(columnName).dataType match {
+        case _: ArrayType =>
+          df = df.withColumn(columnName, explode(df(columnName)).alias(columnName))
+          selectClauseList :+= columnName
+        case structType: StructType =>
+          for (field <- structType.fields) {
+            selectClauseList :+= columnName + "." + field.name
+          }
+        case _ =>
+          selectClauseList :+= columnName
       }
     }
 
@@ -28,32 +34,47 @@ object FlattingNestedXML{
     df.select(columnNames:_*)
   }
 
-  def main(args: Array[String]): Unit = {
-    val spark = SparkSession
-      .builder()
-      .appName("ScalaMnMCount")
-      .config("spark.master", "local")
-      .getOrCreate()
-
-    val xmlPath = "src/data/nestedxml.xml"
-    var df = spark.read.option("rowTag", "items").xml(xmlPath)
-
+  def main(df: DataFrame): DataFrame = {
+    var dfTemp = df
     var nestedColumnCount = 1
-    while (nestedColumnCount != 0){
+    while (nestedColumnCount != 0) {
       var nestedColumnCountTemp = 0
 
-      for (columnName <- df.schema.names) {
-        if (df.schema(columnName).dataType.isInstanceOf[ArrayType] || df.schema(columnName).dataType.isInstanceOf[StructType]) {
+      for (columnName <- dfTemp.schema.names) {
+        if (dfTemp.schema(columnName).dataType.isInstanceOf[ArrayType]
+          ||
+          dfTemp.schema(columnName).dataType.isInstanceOf[StructType]) {
           nestedColumnCountTemp += 1
         }
       }
 
-      if (nestedColumnCountTemp != 0){
-        df = expandNestedColumn(df)
-        df.show(10, false)
+      if (nestedColumnCountTemp != 0) {
+        dfTemp = expandNestedColumn(dfTemp)
       }
       nestedColumnCount = nestedColumnCountTemp
     }
-    spark.close()
+    dfTemp
   }
+
+  val xmlPath = "src/data/nestedxml.xml"
+  val df = spark.read.option("rowTag", "items").xml(xmlPath)
+  val flattedDF = main(df)
+  flattedDF.show()
+
+  spark.close()
+
+  /*
+  for (columnName <- df.schema.names) {
+    if (df.schema(columnName).dataType.isInstanceOf[ArrayType]){
+      df = df.withColumn(columnName, explode(df(columnName)).alias(columnName))
+      selectClauseList :+= columnName
+    }else if (df.schema(columnName).dataType.isInstanceOf[StructType]){
+      for (field <- df.schema(columnName).dataType.asInstanceOf[StructType].fields){
+        selectClauseList :+= columnName + "." + field.name
+      }
+    }else {
+      selectClauseList :+= columnName
+    }
+  }
+  * */
 }
