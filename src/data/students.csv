@@ -1,0 +1,3 @@
+student_id, name, last_name, date_birth, dni, semester, group_id
+3000, "Rosalino", "Sanchez", "1997-09-11", "768-365-0238", 1, 6
+3001, "Lupe", "Tijera", "1998-28-08", "124-643-8573", 2, 1
