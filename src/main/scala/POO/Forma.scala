@@ -4,17 +4,15 @@ import com.databricks.spark.xml._
 import org.apache.spark.sql.functions.{col, explode}
 import org.apache.spark.sql.types.{ArrayType, StructType}
 
-class Forma(ruta: String, spark: SparkSession){
-  private def leerXML: DataFrame =  spark.read.option("rootTag", "items").option("rowTag", "item").xml(ruta)
-
+class Forma(df: DataFrame, spark: SparkSession){
   private def expandNestedColumn(df_temp: DataFrame): DataFrame = {
-    var df: DataFrame = df_temp
+    var dfTemp: DataFrame = df_temp
     var selectClauseList = List.empty[String]
 
-    for (columnName <- df.schema.names) {
-      df.schema(columnName).dataType match {
+    for (columnName <- dfTemp.schema.names) {
+      dfTemp.schema(columnName).dataType match {
         case _: ArrayType =>
-          df = df.withColumn(columnName, explode(df(columnName)).alias(columnName))
+          dfTemp = dfTemp.withColumn(columnName, explode(dfTemp(columnName)).alias(columnName))
           selectClauseList :+= columnName
         case structType: StructType =>
           for (field <- structType.fields) {
@@ -25,10 +23,10 @@ class Forma(ruta: String, spark: SparkSession){
       }
     }
     val columnNames = selectClauseList.map(name => col(name).alias(name.replace('.', '_')))
-    df.select(columnNames: _*)
+    dfTemp.select(columnNames: _*)
   }
 
-  private def aplanarDataFrame(df: DataFrame): DataFrame = {
+  def aplanarDataFrame(): DataFrame = {
     var dfTemp = df
     var nestedColumnCount = 1
     while (nestedColumnCount != 0) {
@@ -49,22 +47,25 @@ class Forma(ruta: String, spark: SparkSession){
     }
     dfTemp
   }
-
-  def orquestador: DataFrame = {
-    try{
-      val df = leerXML
-      aplanarDataFrame(df)
-    } catch {
-      case e: Exception => println(s"Algo salio mal: ${e.getMessage}")
-      spark.emptyDataFrame
-    }
-  }
 }
 
 object main extends App{
-  val spark = SparkSession.builder().master("local").getOrCreate()
+  val spark = SparkSession
+    .builder()
+    .master("local")
+    .getOrCreate()
+
   val ruta = "src/data/nestedxml.xml"
-  val newDataFrame = new Forma(ruta, spark)
-  val dfAplanado = newDataFrame.orquestador
-  dfAplanado.show()
+
+  val df =  spark.read
+    .option("rootTag", "items")
+    .option("rowTag", "item")
+    .xml(ruta)
+
+  val forma1 = new Forma(df, spark)
+  forma1.aplanarDataFrame().show()
+
+  //val newDataFrame = new Forma(ruta, spark)
+  //val dfAplanado = newDataFrame.orquestador
+  //dfAplanado.show()
 }

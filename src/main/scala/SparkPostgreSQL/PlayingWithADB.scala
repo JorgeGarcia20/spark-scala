@@ -74,5 +74,5 @@ object PlayingWithADB extends App {
     case e: Exception => println(s"Algo salio mal: ${e.getMessage}")
   }
 
-  spark.close()
+  //spark.close()
 }
